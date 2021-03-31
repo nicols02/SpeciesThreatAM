@@ -122,6 +122,15 @@ colnames(initSpeciesBel_short) <- head(speciesModel.names,-1)
 initThreatBel_short <- matrix(initThreatBel[,-length(initThreatBel)], nrow=1, ncol= (n.Foxmodels-1))
 colnames(initThreatBel_short) <- head(foxModel.names,-1)
 
+#check if subdirectories exist; if not, create them on the local machine
+
+mainDir <- getwd()
+subDir1 <- "pomdpx_files"
+subDir2 <- "pomdp_solved"
+dir.create(file.path(mainDir, subDir1), showWarnings = FALSE)
+dir.create(file.path(mainDir, subDir2), showWarnings = FALSE)
+
+
 #############################################################
 #Build UI#
 ui <- fluidPage(
