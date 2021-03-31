@@ -173,7 +173,7 @@ ui <- fluidPage(
                       paste = TRUE),
           
     
-          radioButtons("foxModLabel", "Fox Model", foxModel.names, selected = "F5", inline = TRUE),
+          radioButtons("foxModLabel", "Threat Model", foxModel.names, selected = "F5", inline = TRUE),
           radioButtons("spModLabel", "Species Model", speciesModel.names, selected = "S2", inline=TRUE),
           
           checkboxGroupInput("actionLabel", "Simulated Actions", choices= actions.list,
