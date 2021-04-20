@@ -23,6 +23,10 @@ if (library(reshape2,logical.return=TRUE)==FALSE) {
   install.packages("reshape2")
   library("reshape2")
 }
+if (library(lpSolveAPI,logical.return=TRUE)==FALSE) {
+  install.packages("lpSolveAPI")
+  library("lpSolveAPI")
+}
 if (library(DiagrammeR,logical.return=TRUE)==FALSE) {
   install.packages("DiagrammeR")
   library("DiagrammeR")
@@ -398,7 +402,8 @@ server <- function(input, output, session) {
     
     #write an external command for sarsop to run and call it using system(cmd)
     precision <- input$SARSOPtol#1e-1  #set precision for sarsop
-    cmd <- paste("./sarsop/src/pomdpsol.exe \"", datfileName, "\" --precision ", precision, " --timeout ", input$SARSOPtimeout," --output ", outfileName, sep="")
+    #cmd <- paste("./sarsop/src/pomdpsol.exe \"", datfileName, "\" --precision ", precision, " --timeout ", input$SARSOPtimeout," --output ", outfileName, sep="") #works for cygwin; but wsl uses linux call to windows cmd prompt, see next line
+    cmd <- paste("wsl ./sarsop/src/pomdpsol ", datfileName, " --precision ", precision, " --timeout ", input$SARSOPtimeout," --output ", outfileName, sep="") #works for wsl2
     system(cmd)
     
     print(paste("finished solving. Writing to:", outfileName, collapse=""))
@@ -587,25 +592,26 @@ server <- function(input, output, session) {
     print(c("beliefs.filename=", beliefs.filename))
     print(c("N=", N))
     reducedPolicy <- alpha_min_fast(policy.filename, beliefs.filename, precision_a, N)  #turn off to save comp time
-     
+    
      
      filename.out <- "pomdp_solved/reducedPolicy.policy"
+    # reducedPolicy <- read.policy(filename.out)
      print(paste("Alpha-min-fast completed. Saving output file in .dot format to: ", filename.out, sep=""))
      policyGraphFileName <- print.reduced.policy(policy.filename, reducedPolicy,  filename.out)  #writes to 
      print("Policy file saved. Rendering plot")
      policyGraphFileName <- 'pomdp_solved/reducedPolicyGraph.dot'
-     plotdf.policyGr <- grViz(policyGraphFileName, engine = "dot")
-     plotdf.policyGr  #plot to Shiny output
+     #plotdf.policyGr <- grViz(policyGraphFileName, engine = "dot")
+     #plotdf.policyGr  #plot to Shiny output
      
      
-     #save policy graph plot as a pdf-- tends not to display well if polgraph is big: use svg instead
-     imgName <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".pdf", sep="")
-     plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_pdf(imgName)
+    # #save policy graph plot as a pdf-- tends not to display well if polgraph is big: use svg instead
+    # imgName <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".pdf", sep="")
+    # plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_pdf(imgName)
      
      #save policy graph plot as a svg
-     imgNameSVG <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".svg", sep="")
-     plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_svg(imgNameSVG)
-     print(paste("Policy graph saved to", imgNameSVG, sep=""))
+    # imgNameSVG <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".svg", sep="")
+    # plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_svg(imgNameSVG)
+    # print(paste("Policy graph saved to", imgNameSVG, sep=""))
     
     #plot the policy graph for the current 'true' model from the input
     true.model <- c(input$foxModLabel, input$spModLabel)
@@ -636,132 +642,6 @@ server <- function(input, output, session) {
       plotdf.policyGr  #plot to Shiny output
      }
   })
-  # output$polgraphImg <- renderGrViz({
-  #    #plot policy graph to specified depth using sarsop polgraph function
-  #    maxDepthPolgraph <- 2 #depth of policy tree (recommend not greater than 4 for readability)  
-  #   # benefitRatio= c(0,input$costExt,input$costExt)  #c(-20,0,0)
-  #    policy.filename <- paste("./pomdp_solved/ShinySolution_", paste(benefitRatio(), collapse="_"),".policy", sep="")
-  #    
-  #    #policy.filename <- "./pomdp_solved/test.policy"
-  #    policy <- read.policy(policy.filename)
-  #    beliefs.filename <- "beliefs.txt"
-  #    precision_a <- input$precision_alphamin#0.05  #user-defined
-  #    N <- input$numvect_alphamin#10 #user-define number of alphavectors
-  #    
-  #    #run the alpha-min-fast function
-  #    print("Commencing alpha-min-fast algorithm. Please wait")
-  #    reducedPolicy <- alpha_min_fast(policy.filename, beliefs.filename, precision_a, N)
-  #    
-  #    
-  #    filename.out <- "pomdp_solved/reducedPolicy.policy"
-  #    print(paste("Alpha-min-fast completed. Saving output file in .dot format to: ", filename.out, sep=""))
-  #    policyGraphFileName <- print.reduced.policy(policy.filename, reducedPolicy,  filename.out)  #writes to 
-  #    print("Policy file saved. Rendering plot")
-  #   # policyGraphFileName <- 'pomdp_solved/reducedPolicyGraph.dot'
-  #    plotdf.policyGr <- grViz(policyGraphFileName, engine = "dot")
-  #    plotdf.policyGr  #plot to Shiny output
-  #    #install.packages('rsvg')
-  #    #install.packages('DiagrammeRsvg')
-  #    #library(rsvg)
-  #    #library(DiagrammeRsvg)
-  #    
-  #    #save policy graph plot as a pdf-- tends not to display well if polgraph is big: use svg instead
-  #    imgName <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".pdf", sep="")
-  #    plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_pdf(imgName)
-  #    
-  #    #save policy graph plot as a pdf
-  #    imgNameSVG <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision_a,".svg", sep="")
-  #    plotdf.policyGr %>% export_svg %>% charToRaw %>% rsvg_svg(imgNameSVG)
-  #     
-  #    
-  #   #  ##ATTEMPT TO CLEAN POLICY GRAPH: 
-  #   #  #FIRST, STRIP OUT BELIEF IN DOMINANT MODEL FROM DOT FILE; THEN MATCH NODES AND EDGES AND RENAME WITH FEWER NODES
-  #   #  #read in dot as character; detect all occurrences of  "\1A" and delete the number before it (belief in dominant model)
-  #   #  dat <- readChar(policyGraphFileName, file.info(policyGraphFileName)$size)  #in case you need to read the dot file into R as string
-  #   #  #d <- substr(dat, 1, 100)
-  #   #  
-  #   #  data <- read.table(file(policyGraphFileName),sep='\n', quote= "") 
-  #   #  nrowsNode <- grep("root", data[,1])[2]-1 #get second occurrence of 'root'; this is the first line of edge descriptions 
-  #   #    for (i in 3:nrowsNode){
-  #   #      d <- data[i,]
-  #   #     startChar <- regexpr("(F.,S.)",d)[1] + attr(regexpr("(F.,S.)",d), "match.length")
-  #   #     endChar <- regexpr("\\lA",d)[1]
-  #   #     strReplace <- paste(substr(d,1,startChar),substr(d,endChar-1, nchar(d)), sep=" ")
-  #   #     data[i,] <- strReplace
-  #   #    }
-  #   # 
-  #   #  #separate out the node names and their labels
-  #   #  nodesData <- matrix(data=NA, nrow= nrowsNode-2, ncol=5)
-  #   #  nodesData[,1] <- data[3:nrowsNode,]
-  #   #  for (i in 1:nrow(nodesData)){
-  #   #    nodesData[i,2] <- substr(nodesData[i,1], 1, regexpr("label=",nodesData[i,1])[1]-2)
-  #   #    nodesData[i,3] <- substr(nodesData[i,1], regexpr("label=",nodesData[i,1])[1]-2, nchar(nodesData[i,1]))
-  #   #  }
-  #   #  nodesData[,4] <- match(nodesData[,3], unique(nodesData[,3]))  #indices based on matches
-  #   #  nodesData[,5] <- paste("x", nodesData[,4], sep="")  #new names for each node-- now need to replace names in the edges part of the file based on the mapping between cols 2 and 5
-  #   #  nodesData[1,5] <- "root" #keep the name of the root node
-  #   #  
-  #   #  #replace the nodenames in the original file with their unique identifiers from nodeData[,5]
-  #   #  data.edit <- data
-  #   #  for (i in 1:nrow(nodesData)){
-  #   #   data.edit <- data.frame(lapply(data.edit, function(x) {gsub(pattern=nodesData[i,2], replacement= nodesData[i,5], x)}))
-  #   #  }  
-  #   #  #delete unneccessary nodes
-  #   #   data.edit2 <- unique(data.edit)
-  #   #   
-  #   # #now need to sum and normalize all incoming probabilities to each node (using edges definitions)  
-  #   #   nrowsNode2 <- grep("root", data.edit2[,1])[2]-1 #get second occurrence of 'root'; this is the first line of edge descriptions 
-  #   #   nrowsEdge2 <- nrow(data.edit2)- nrowsNode2
-  #   #   #separate out the node names and their labels
-  #   #   edgesData <- matrix(data=NA, nrow= nrowsEdge2, ncol=4)
-  #   #   edgesData[,1] <- data.edit2[(nrowsNode2+1):nrow(data.edit2),1]
-  #   #   for (i in 1:nrowsEdge2){
-  #   #     d <- data.edit2[i+nrowsNode2,]
-  #   #     startChar <- regexpr(")",d)[1]  
-  #   #     endChar <- regexpr("\\\\",d)[1]  #escape the double backslash
-  #   #     strReplace <- paste(substr(d,1,startChar),substr(d,endChar, nchar(d)), sep=" ") #extract the string for comparisons
-  #   #     probD <- as.numeric(substr(d,startChar+1, endChar-1)) #extract the probabiity of the edge for computation
-  #   #     edgesData[i,2] <- strReplace
-  #   #     edgesData[i,3] <- probD
-  #   #   }
-  #   #   edgesData[,4] <- match(edgesData[,2], unique(edgesData[,2]))  #indices based on matches
-  #   #   #group edges by same index and sum
-  #   #   colnames(edgesData) <- c("raw", "matchString","prob","index")
-  #   #   edgesData <- as.data.frame(edgesData)
-  #   #   edgesData$prob <- as.numeric(edgesData$prob)
-  #   #   edgesData$index <- as.numeric(edgesData$index)
-  #   #   edgeDatCut <- edgesData %>% 
-  #   #                 select(index, prob,matchString)  %>% 
-  #   #                 group_by(index, matchString) %>% 
-  #   #                 summarise(sum(prob))
-  #   #   colnames(edgeDatCut)[3] <- "sumProb"
-  #   #   #now need to normalise the outgoing probabilities to ensure sum =1###########
-  #   #   
-  #   #   #reconstruct the raw string with the new probabilities
-  #   #   for (i in 1:nrow(edgeDatCut)){
-  #   #     d <- edgeDatCut$matchString[i]
-  #   #     startChar <- regexpr(")",d)[1] 
-  #   #     endChar <- nchar(d)- nchar("\\l\"];")
-  #   #     #edgeDatCut[i,4] <- paste(substr(d,1,startChar), " ", edgeDatCut$sumProb[i], substr(d,startChar+1,nchar(d)), sep="")
-  #   #     edgeDatCut[i,4] <- paste(substr(d,1,startChar), " ", edgeDatCut$sumProb[i], "\\l\"];", sep="") #cull observation since always 1
-  #   #   }
-  #   #   edgeDatCut[nrow(edgeDatCut),4] <- "}" #remove NA created by sumprob
-  #   #   nodesformatted <- as.data.frame(data.edit2[(1:nrowsNode2),1])
-  #   #   edgesformatted <- as.data.frame(edgeDatCut[,4])
-  #   #   names(nodesformatted) <- names(edgesformatted)
-  #   #   data.edit3 <- rbind(nodesformatted, edgesformatted)
-  #   #   
-  #   #  
-  #   #  #write the edited policy graph back to text file and plot as before
-  #   #  fileout <- paste(substr(policyGraphFileName,1,nchar(policyGraphFileName)-4), "Edited.dot",sep="")
-  #   #  
-  #   #  write.table(data.edit3, file= fileout,row.names= FALSE, col.names= FALSE, quote=FALSE)
-  #   #  plotdf.policyGr2 <- grViz(fileout, engine = "dot")
-  #   #  
-  #   #  imgNameSVG2 <- paste('./pomdp_solved/polGraph_depth_', maxDepthPolgraph,'_precision_',precision,"Edited.svg", sep="")
-  #   #  plotdf.policyGr2 %>% export_svg %>% charToRaw %>% rsvg_svg(imgNameSVG2)
-  #    
-  #  })
   
 
 }
