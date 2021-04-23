@@ -103,7 +103,7 @@
   datfileName <- paste("./", outputFileName, sep="")
   ptm <- proc.time()
   #cmd <- paste("./sarsop/src/pomdpsol.exe \"", datfileName, "\" --precision ", precision, " --timeout 100 --output ", outfileName, sep="")  #works for cygwin
-  cmd <- paste("wsl ./sarsop/src/pomdpsol ", datfileName, " --precision ", precision, " --timeout ", input$SARSOPtimeout," --output ", outfileName, sep="") #works for wsl2
+  cmd <- paste("wsl ./sarsop/src/pomdpsol ", datfileName, " --precision ", precision, " --timeout ", 100," --output ", outfileName, sep="") #works for wsl2
   
   system(cmd)
   proc.time() - ptm
