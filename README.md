@@ -53,6 +53,52 @@ As well as a modified version of SARSOP the alpha-min-fast algorithm uses the lp
 ##  1.	Simulation and setup page
 After launching the app, you should see a two-column layout (Figure 1). The left sidebar contains information that is required to generate the POMDP solution. There are default values in each box but these can be edited as required to solve different problems. The right sidebar may take a moment to load. It shows simulations of the system given the parameters on the left. As you update the values in the sidebar, the simulations will update automatically. Users can use the simulations to see the trajectory of the species and the threat. The visualisations provide a sanity check on the values entered into the elicitation boxes by allowing the users to see the impacts of the values they enter on the long-term behaviour of the system. If an optimal solution has previously been generated then this will be plotted on the graph too.
  ![Figure 1](/readme_images/Picture1.png)
+ 
 Figure 1: The Simulate tab. This is the view that you should see when you first open the app.
 
 Below we provide information on each of the fields in the left sidebar. Acceptable values for each field are included in the brackets following the description.
+
+### Left sidebar fields description:
+
+-	Length of simulation: The number of years to run the simulations—used only for exploring the simulated performance in the plots on the right (integer).
+-	Number of simulations: The number of simulation runs to plot in the simulated performance plots on the right (integer).
+- Recovery prob: The annual probability that a locally extinct species is reintroduced (e.g. by immigration or translocation). Default is zero (decimal value between 0 and 1).
+-	Benefit of non-extinction: The relative benefit of the species being in either the low or high states. The extinct state has a benefit score of 0. The units are the same as the units of action cost. The default values are benchmarked against the cost of action a1. See the manuscript for further details of the reward function (positive number).
+-	Action cost matrix: This matrix contains the relative costs of each action. As in the manuscript, there are 3 actions plus a do nothing action (a0). Actions a1 and a2 are general actions that can have any characteristics, however a3 is a combination of actions a1 and a2 ; see the main text for further information about the assumed relationship between actions (positive number for each matrix entry).
+-	Threat elicitation: These two matrices elicit the response of the threatening process to the management actions. The column on the left lists the current threat state. The columns to the right request the user to enter the probability of remaining in the threat state given that the actions are implemented. For example, the first entry in this matrix looks like this:
+
+ ![Figure 2](/readme_images/Picture2.png)
+ 
+This entry can be read as “Given that the threat state is currently high (left column), the probability that the threat state remains high, given action A0 is implemented, is equal to 0.875”. Note that there are fewer elicitations required for the high state because we implement the interpolation method of (Cain 2001) to reduce the number of questions required (positive number between 0-1 for each matrix entry).
+
+-	Species elicitation: This matrix elicits the response of the species to the threatening process. The column on the left lists the current threat state and species state respectively. The columns to the right request the user to enter the probability of transitioning to the locally extinct and high species states given the current threat and species states. For example, the first row in this matrix looks like this:
+
+
+ ![Figure 3](/readme_images/Picture3.png)
+ 
+This entry can be read as: “Given that the threat is not present and the species state is currently low, the probability that the species will be locally extinct next year is 0.02. The probability that the species state will be high next year is 0.8” (positive number between 0-1 for each matrix entry; must sum to less than or equal to 1).
+
+-	Threat model and species model: These radio buttons tell the plot window on the right which models to simulate as the ‘true’ model dynamics. They can be used for scenario exploration and to understand how changing the assumptions about species and threat interactions will affect expected performance. The plots on the right display the performance of each action given the model dynamics selected in these radio buttons. Clicking on a different combination of species and threat models will cause the plots to automatically update to reflect the changes in the true dynamics. These selected “true” dynamics are also carried across to the “belief simulation” page of the app (see below).
+The threat models F1-5 represent different assumptions about the effectiveness of management actions, i.e.:
+    -	F1	All actions ineffective
+    -	F2	A1, A3 effective, A2 ineffective
+    -	F3	A1 ineffective, A2, A3 effective
+    - F4	A3 effective (A1, A2 ineffective)
+    - F5	Any action is effective (A1-A3 effective)
+    
+Note that A3 (combined action) is effective in all models except F1 and that A0 (do nothing) is always ineffective. The species models S1-3 represent different assumptions about the impacts of threat state on species:
+
+    -	S1	species respond negatively to any level of threat presence (high or low threat)
+    -	S2	species respond negatively to high threat presence (no or limited impact of low threat density)
+    - S3	species don't respond to threat presence (no impact of either high or low threat density)
+    
+-	Simulated actions: These checkboxes allow the user to select which actions are plotted in the figures on the right. Multiple selections can be made.
+-	Generate POMDPX file: This button will run a script to generate the MOMDP input file in the SARSOP POMDPX file (a factored format that utilises the conditional structure of the problem to produce a more compact representation). On clicking the button, a message (i.e. "starting writing POMDPX file") will appear in the RStudio window. It should run almost instantaneously. When the script is finished, a message ("finished writing to \"./pomdpx_files/filename\"") will appear in the RStudio window. The pomdpx file will be saved in “./pomdpx_files/sarsop_input_ShinyGrab.pomdpx”. It can be viewed with any text editor, e.g. Notepad++.
+-	MOMDP tolerance and timeout: These numbers specify the stopping conditions for SARSOP when solving the MOMDP. The tolerance is a precision threshold for successive iterations of the value function; timeout is a time (in seconds) before SARSOP returns a solution. SARSOP will stop when either of the two stopping conditions are satisfied. For our default problem, we recommend a tolerance of 0.5. If the tolerance is too low then SARSOP will still solve (it stops after the maximum time specified by the timeout), but it may cause issues with the alpha-min-fast algorithm on the last page if the solution generates too many alpha vectors.
+-	Solve the MOMDP: This button calls SARSOP to solve the MOMDP using the stopping conditions in the previous step. Progress output from SARSOP is written to the console; it is finished when the following  message is displayed in the console: “finished solving. Writing to: ./pomdp_solved/ShinySolution_0_xx_xx.policy", where xx depends on the value of “benefit of nonextinction” entered above.  The policy file can be viewed with any text editor, e.g. Notepad++. Once the MOMDP policy file exists, the plots on the right will update automatically to display the simulated performance of the MOMDP solution for the given assumed dynamics. Note that the optimal MOMDP will not necessarily out-perform all the other actions, since the MOMDP doesn’t “know” the true dynamics and is learning the best actions to take based on past feedback. It is the optimal policy when we start from ignorance and hedge our bets across all of the models.
+-	Note that the subsequent pages of the app will not work until the MOMDP has been solved. The app looks for the existence of the ShinySolution_0_xx_xx.policy; if it is not found then the other pages will not work. However if the policy file exists from previous runs, it will plot even though you may have made changes while on the Simulate Tab. To avoid this, it is good practice to solve the MOMDP each time you launch the app before moving on from the Simulate tab (to clear out any previous runs), otherwise the subsequent pages may be displaying incorrect results.
+
+
+### Right sidebar plots
+The four plots on the right all show the simulated performance of a quantity over time and are controlled by the options in the left sidebar. The assumed system dynamics model for the simulations is in the title, i.e. Model_Fx_Sx (controlled by the radio buttons on the left) The plots depict the following, from top to bottom: the mean (a) Threat; and (b) Species states throughout the simulated period. The mean instantaneous (c) Reward received at the each timestep for each depicted action, and the mean cumulative (d) Sum of rewards over the duration of the simulation. The sum of rewards is the optimisation criterion for the MOMDP.
+In the threat plot, the high threat state corresponds with a value of 2; low threat corresponds to a value of 1. In the species plot, the high state corresponds with a value of 3, low with value 2, and locally extinct has a value of 1. The initial starting state is assumed to be high threat, low species.
