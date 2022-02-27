@@ -9,7 +9,7 @@ The installation instructions included in this document are also designed for Wi
 # Licence
 The code is licensed using the MIT open source licence. See licence information available on github. Basically this is free to use and modify with attribution. No warranty or liability is given for the code.
 
-# Installation:
+# Windows Installation:
 NOTE THAT INSTALLATION IS NOT RECOMMENDED UNLESS YOU WANT TO MODIFY THE CODE. TO SIMPLY USE THE APP, visit https://jonathan-ferrer.shinyapps.io/SpeciesThreatAM/.
 
 The following documentation only works for Windows users. For users with other OS, we recommend using the online app or contacing the authors for help with modifying the code to run on your system. Linux users will find installation easy, but there are a couple of lines 
@@ -17,28 +17,27 @@ in the R code that will need to be modified to ensure the app runs smoothly. We 
 
 The app is written in the R programming language (version 4.0.2; note that testing on earlier R versions created warnings and issues rendering the plots in the app). It has been tested using RStudio (version 1.3.1093) on Windows 10 version 20H2. We recommend using RStudio to run the app, since it has features such as progress messages that will be printed to the console. 
 The app is available from github at: https://github.com/nicols02/SpeciesThreatAM.git. Source code can be obtained from this URL by cloning the repository to a directory on your local system.  
+
 You will need to install a Linux distribution to ‘make’ the sarsop file. We recommend using WSL2, which is a Windows supported tool for running Linux distributions through your Windows 10 machine. To install WSL2, follow the instructions at: 
 https://docs.microsoft.com/en-us/windows/wsl/install-win10. 
 Note that if you choose a software other than WSL (e.g. Cygwin) then you will need to manually update the code in the app that calls sarsop (line 405-6). The syntax for use with Cygwin is included at these lines but is commented out in the code.
 
-After installing WSL, open Linux (i.e. Ubuntu) and run “sudo apt update && sudo apt upgrade” to update your Ubuntu packages to the latest version.
-Once you have installed WSL and a Linux distribution (we used Ubuntu), you need to navigate to the folder where you stored sarsop. To access your C:, you need to open the Ubuntu drive and type “cd /mnt/c/”. From here it should be straightforward to cd (i.e. change directory) to the folder where you stored sarsop and locate the sarsop/src folder. For example, my default location was: 
+After installing WSL, open Linux (i.e. Ubuntu) and run *“sudo apt update && sudo apt upgrade”* to update your Ubuntu packages to the latest version.
+Once you have installed WSL and a Linux distribution (we used Ubuntu), you need to navigate to the folder where you stored sarsop. To access your C:, you need to open the Ubuntu drive and type *“cd /mnt/c/”*. From here it should be straightforward to cd (i.e. change directory) to the folder where you stored sarsop and locate the sarsop/src folder. For example, my default location was: *“cd /mnt/c/Users/<your_username>/Documents/SpeciesThreatAM/sarsop/src”.*
 
-“cd /mnt/c/Users/<your_username>/Documents/SpeciesThreatAM/sarsop/src”.
-Next you’ll need to ‘make’ the sarsop files so that you can run sarsop. You’ll need to add the ‘make’ command to Ubuntu, since you only installed a minimal Linux distribution. To do this, type the following into the Ubuntu console:
-“sudo apt-get install build-essential” 
-You’ll need to enter your password that you created when you installed and first launched Ubuntu. Build-essential gives you a suite of important functions needed by sarsop including make and gcc.
-Once you’ve added the make command and are in the sarsop/src directory, you can simply type “make”.
+Next you’ll need to ‘make’ the sarsop files so that you can run sarsop. You’ll need to add the ‘make’ command to Ubuntu, since you only installed a minimal Linux distribution. To do this, type the following into the Ubuntu console: *“sudo apt-get install build-essential”*
+
+You’ll need to enter your password that you created when you installed and first launched Ubuntu. Build-essential gives you a suite of important functions needed by sarsop including make and gcc. Once you’ve added the make command and are in the sarsop/src directory, you can simply type *“make”*.
+
 A good troubleshooting step here is to check that sarsop is installed. From Ubuntu, try to solve an example problem by entering the following into the console:
-“./pomdpsol ../examples/POMDPX/Tiger.pomdpx”
-You should see sarsop solve a toy problem on the screen and a policy file will be generated to "out.policy" by default (see https://github.com/AdaCompNUS/sarsop  for more information).
+*“./pomdpsol ../examples/POMDPX/Tiger.pomdpx”*. You should see sarsop solve a toy problem on the screen and a policy file will be generated to "out.policy" by default (see https://github.com/AdaCompNUS/sarsop  for more information).
 If this works, then sarsop is installed correctly. 
 
 You can also check that WSL2 is working in the Windows command window. To do this, open a windows cmd prompt (Click the windows icon and type “cmd”). Navigate to the sarsop/src directory and type:
-“wsl ./pomdpsol ../examples/POMDPX/Tiger.pomdpx”
-This should solve the same problem as above, but via the Windows command prompt. If this works, then sarsop should be ready to run in the Shiny app.
+*“wsl ./pomdpsol ../examples/POMDPX/Tiger.pomdpx”*. This should solve the same problem as above, but via the Windows command prompt. If this works, then sarsop should be ready to run in the Shiny app.
 
 Note that the Shiny app will not run from a URL (e.g. shiny::runGitHub(“SpeciesThreatAM”, “nicols02”, ref= “main”)) because it has a predefined folder structure that reads and writes files as you step through the process of solving the MOMDP.
+
 ## Running from RStudio:
 The Shiny app is stored in a file called “app.R”. To run the app, place the files into an app directory in your working directory. First, include the shiny library by typing “library(“shiny”) into the console. You can then launch the app in R using either runApp("app.R"), or by opening the app file in RStudio and clicking “Run App” in the top right hand corner of the scripting window.
 
@@ -46,6 +45,7 @@ The Shiny app is stored in a file called “app.R”. To run the app, place the 
 
 ## Notes on additional software:
 The app calls other software, in particular the SARSOP MOMDP solver (original version available from https://github.com/AdaCompNUS/sarsop). If installed directly from source, SARSOP requires a linux environment (WSL2 is recommended if you are on Windows—see text above). However, an unpacked version of SARSOP is packaged with the app, so there should be no need to install it from its original location. We made minor modifications to the SARSOP code (specifically, our implementation stores the sampled belief vectors in a file for use in alpha-min-fast), so we recommend using the version that comes with our app.
+
 As well as a modified version of SARSOP the alpha-min-fast algorithm uses the lp_solve program (http://lpsolve.sourceforge.net/5.5/). GraphViz (https://graphviz.org/) may be useful for viewing policy graphs, but we used the R package DiagrammeR to visualise .dot files produced by SARSOP and alpha-min-fast. DiagrammeR will automatically install and load when the app is run.
 
 # Using the app
@@ -68,7 +68,6 @@ Below we provide information on each of the fields in the left sidebar. Acceptab
 -	**Threat elicitation:** These two matrices elicit the response of the threatening process to the management actions. The column on the left lists the current threat state. The columns to the right request the user to enter the probability of remaining in the threat state given that the actions are implemented. For example, the first entry in this matrix looks like this:
 
  ![Figure 2](/readme_images/Picture2.png)
- 
  
 This entry can be read as “Given that the threat state is currently high (left column), the probability that the threat state remains high, given action A0 is implemented, is equal to 0.875”. Note that there are fewer elicitations required for the high state because we implement the interpolation method of (Cain 2001) to reduce the number of questions required (positive number between 0-1 for each matrix entry).
 
@@ -122,7 +121,7 @@ This page provides an interactive tool to simulate the belief state over one tim
 This page implements the alpha-min-fast algorithm (Dujardin et al. 2017) to compress the policy file to a desired number of alpha vectors and plot the policy graph. Users can specify the tolerance for the algorithm (lower values are better approximations to the true policy, but take longer to find) and the maximum number of alpha-vectors to include in the solution (pruning more alpha-vectors makes the solution more compact but potentially increases the error). The “Compress Policy” button runs the alpha-min-fast algorithm, which is stored in an R script named “alpha_min_fast.R”. Progress messages are pasted to the console—these are useful since alpha-min-fast can run slowly on this problem and depending on how many alpha vectors are included in the policy file, it may take a substantial amount of time to complete. If you are using the alpha-min-fast page of the app, we recommend running the app through RStudio so that you can see the progress messages (if you run via the web you will have to wait until the output file appears in the pomdp_solved folder… but until the file is completed, you won’t know if the algorithm will complete or is hanging because you have too many alpha-vectors). You can control the number of alpha-vectors by changing the precision of the SARSOP algorithm with the “MOMDP tolerance” option on the Setup and Simulation page. We recommend finding a precision that returns up to ~3000 alpha vectors to ensure a reasonable solution time for alpha-min-fast (a precision of 0.5 worked well on our problem; solved in a few seconds on our laptop).
 
 The policy graph for this problem remains complex despite the simplifications to the number of alphavectors. SARSOP contains a tool for plotting policy files using a file type called a .dot file, which is a graphviz graphical format that can be plotted using the DiagrammeR package in R. Unfortunately, SARSOP’s polgraph tool is designed to plot POMDP rather than MOMDP outputs, so the resulting policy graph remains highly complex despite the simplified policy file. This is caused by the program interpreting otherwise identical states with different beliefs as different nodes in the graph. There is a need to design a plotting tool that is customised for dealing with MOMDP policies and can identify and plot identical states. We have implemented the sarsop plotting tool in our code (lies 603-614), however it is commented out because the resulting policy graph is too complex for easy use. 
-As an alternative to help with visualising the policy, we created a custom visualisation of the policy graph from our simulations on the previous pages. Our belief simulation showed that for all models, a stationary belief distribution is reached in relatively few steps. The stationary belief distribution is dependent on the “true model” used in the simulations, but we can plot the optimal policy for any “true model” to help users to visualise the optimal policy under different possible models. The policy graph for the current “true model” (i.e. the one selected using the “Threat model” and “Species model” radio buttons in the “Simulate” tab) is computed and displayed when the user clicks the “Compress Policy” button (see the example below). The policy graph is saved in “./pomdp_solved/polGraph_miniFx_Sy.svg”, where x and y represent the threat model and species model respectively. SVG files can be viewed in a web browser and edited with vector graphics tools.
+As an alternative to help with visualising the policy, we created a custom visualisation of the policy graph from our simulations on the previous pages. Our belief simulation showed that for all models, a stationary belief distribution is reached in relatively few steps. The stationary belief distribution is dependent on the “true model” used in the simulations, but we can plot the optimal policy for any “true model” to help users to visualise the optimal policy under different possible models. The policy graph for the current “true model” (i.e. the one selected using the “Threat model” and “Species model” radio buttons in the “Simulate” tab) is computed and displayed when the user clicks the “Compress Policy” button (see the example below). The policy graph is saved in *“./pomdp_solved/polGraph_miniFx_Sy.svg”*, where x and y represent the threat model and species model respectively. SVG files can be viewed in a web browser and edited with vector graphics tools.
 
 To read the policy graph, find the node corresponding to the current state (denoted by X). The optimal action will be listed in the node (denoted A). After taking the action, the probability of transition to other states is shown adjacent to the relevant edges on the graph. The text below the graph shows the “true model” that the policy graph applies to. Transition probabilities less than 0.05 are not shown for simplicity; if desired, this threshold can be changed with the ‘threshold’ argument of the draw.polgraph.conditional function at line 623 of the code. The stationary belief is also displayed on the policy graph. See below for example output from the compressed policy graph page.
 
