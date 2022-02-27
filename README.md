@@ -52,7 +52,7 @@ As well as a modified version of SARSOP the alpha-min-fast algorithm uses the lp
 
 ##  1.	Simulation and setup page
 After launching the app, you should see a two-column layout (Figure 1). The left sidebar contains information that is required to generate the POMDP solution. There are default values in each box but these can be edited as required to solve different problems. The right sidebar may take a moment to load. It shows simulations of the system given the parameters on the left. As you update the values in the sidebar, the simulations will update automatically. Users can use the simulations to see the trajectory of the species and the threat. The visualisations provide a sanity check on the values entered into the elicitation boxes by allowing the users to see the impacts of the values they enter on the long-term behaviour of the system. If an optimal solution has previously been generated then this will be plotted on the graph too.
- 
+ ![Figure 1](/readme_images/Picture1.png)
 Figure 1: The Simulate tab. This is the view that you should see when you first open the app.
 
 Below we provide information on each of the fields in the left sidebar. Acceptable values for each field are included in the brackets following the description.
