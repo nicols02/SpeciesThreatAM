@@ -85,9 +85,8 @@ The threat models F1-5 represent different assumptions about the effectiveness o
     -	F3	A1 ineffective, A2, A3 effective
     - F4	A3 effective (A1, A2 ineffective)
     - F5	Any action is effective (A1-A3 effective)
-    
-Note that A3 (combined action) is effective in all models except F1 and that A0 (do nothing) is always ineffective. The species models S1-3 represent different assumptions about the impacts of threat state on species:
-
+Note that A3 (combined action) is effective in all models except F1 and that A0 (do nothing) is always ineffective. 
+The species models S1-3 represent different assumptions about the impacts of threat state on species:
     -	S1	species respond negatively to any level of threat presence (high or low threat)
     -	S2	species respond negatively to high threat presence (no or limited impact of low threat density)
     - S3	species don't respond to threat presence (no impact of either high or low threat density)
