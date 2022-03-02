@@ -1,10 +1,10 @@
-#run this app from GitHub by typing the commands:
-#install.packages('shiny')
-#install.packages('shinyMatrix')
-#install.packages('ggplot2')
-#install.packages('reshape2')
-#shiny::runGitHub( "FoxAM", "nicols02")
-#also needs sarsop installed
+# This script runs the SpeciesAM Shiny app outlined in the manuscript Nicol et al (2022).
+#Run this app after dl from GitHub: https://github.com/nicols02/SpeciesThreatAM
+#Note that the script requires sarsop to be installed. Please see the readme for install instructions (Windows only)
+#This code is mostly made available for reproducibility purposes. 
+#Since this code requires a fairly arduous installation and depends on your OS, 
+#we recommend using the online version rather than installing from here; 
+#see the readme or the manuscript for the URL to access the online app.
 
 #check if required packages are installed, if not, install and attach to the library
 if (library(shiny,logical.return=TRUE)==FALSE) {
@@ -138,10 +138,30 @@ dir.create(file.path(mainDir, subDir2), showWarnings = FALSE)
 #############################################################
 #Build UI#
 ui <- fluidPage(
+  ###########################################
+  #edit size of message box
+  tags$head(
+    tags$style(
+      HTML(".shiny-notification {
+             position:fixed;
+             top: calc(90%);
+             left: calc(60%);
+             }
+             "
+      )
+    )
+  ),
+  ###########################################
+  
+  
   
   navbarPage("Threat-Species Adaptive Management",
   
     tabPanel("Simulate",
+             p("This page is where you can enter information that is required to generate the POMDP and solve the POMDP. 
+                The plots simulate the system over time and can be used to help calibrate the parameters to give expected behaviour.", style = "margin-bottom: 3px;"),
+              p("When you have entered your preferred parameters, click on the action buttons to generate the POMDP files and solution.",  style = "margin-bottom: 3px;"),
+              p(" See the readme on GitHub (https://github.com/nicols02/SpeciesThreatAM) for more information about how to use the app."),
       sidebarLayout(
         sidebarPanel( width= 6,
           div(style="display: inline-block;vertical-align:top; width: 150px;",numericInput("maxT", "Length of simulation",value=20,min=1, max=NA, step=1)),
@@ -198,7 +218,7 @@ ui <- fluidPage(
           div(style="display: inline-block;vertical-align:top; width: 150px;",numericInput("SARSOPtol", "MOMDP tolerance",value=0.5,min=0, max=1, step=0.05)),
           div(style="display: inline-block;vertical-align:top; width: 150px;",numericInput("SARSOPtimeout", "MOMDP timeout (sec)",value=100,min=0, step=10)),
           
-          br(), 
+          br(),
           
           actionButton("solvePOMDP", "Solve the MOMDP"),
           
@@ -215,6 +235,9 @@ ui <- fluidPage(
     ), #close Navbar page
     
     tabPanel("Belief simulation",
+             p("This page displays the simulated belief and optimal policy assuming the model dynamics displayed on the Simulate page.",  style = "margin-bottom: 3px;"),
+             p("The top two figures show the evolution of the (marginal) belief in each threat and species model over the duration of the simulation, assuming a uniform initial belief.",  style = "margin-bottom: 3px;"),
+             p("The bottom plot shows the frequency that each action was selected in the simulations at each time step, providing an indication of the optimal policy",  style = "margin-bottom: 8px;"),
              strong("Simulated belief plots"),
              br(), #add a new line
              textOutput("TrueModelReport"),
@@ -232,6 +255,14 @@ ui <- fluidPage(
              ),
     
     tabPanel("Explore POMDP Solution",
+             p("This page provides an interactive tool to simulate the belief state over one timestep. 
+               Users are given radio buttons to select the current threat and species state. Users can then input 
+               the initial belief states for the threat and species models (these have default values but they can
+               be edited by clicking in the relevant text boxes). After doing this, pushing the “Get Optimal Action”
+               button will interrogate the optimal policy and display the optimal action for the next timestep. Users
+               can then specify the next observed state and the tool will print out the updated belief state (based
+               on the current and next states and assuming that the optimal action is applied).",  style = "margin-bottom: 8px;"),
+             
              strong("Current state"),
              br(), #add a new line
              div(style="display: inline-block;vertical-align:top; width: 150px;",
@@ -296,6 +327,17 @@ ui <- fluidPage(
     
     
      tabPanel("Policy graph",
+              p("This page implements the alpha-min-fast algorithm (Dujardin et al. 2017) to compress the policy file to
+                a desired number of alpha vectors and plot the policy graph. Users can specify the tolerance for 
+                the algorithm (lower values are better approximations to the true policy, but take longer to find)
+                and the maximum number of alpha-vectors to include in the solution (pruning more alpha-vectors makes 
+                the solution more compact but potentially increases the error).",  style = "margin-bottom: 3px;"),
+              p("The “Compress Policy” button runs the alpha-min-fast algorithm”. ",  style = "margin-bottom: 3px;"),
+              p("To read the policy graph, find the node corresponding to the current state (denoted by X). 
+                The optimal action will be listed in the node (denoted A). After taking the action, the probability 
+                of transition to other states is shown adjacent to the relevant edges on the graph. The text below 
+                the graph shows the “true model” that the policy graph applies to."),
+              
               h4(strong("Policy graph plot")),
               br(),
               div(style="display: inline-block;vertical-align:top; width: 150px;",numericInput("precision_alphamin", "Desired tolerance for alphamin",value=0.05,min=0, max=NA, step=0.01)),
@@ -305,7 +347,7 @@ ui <- fluidPage(
               actionButton("alphaMinSolve", "Compress Policy"),
               br(),
               h6("Note that Compress Policy takes some time to run."),
-              h6("You can observe progress via the print messages in the RStudio console"),
+              #h6("You can observe progress via the print messages in the RStudio console"),
               h6("The button compresses the policy using the alpha-min-fast algorithm and plots a policy graph below."),
               h6("When completed, output .dot and .svg files are saved to the ./pomdp_solved folder."),
               grVizOutput('polgraphImg', width = "100%", height = "760px") #render the policy graph
@@ -385,6 +427,14 @@ server <- function(input, output, session) {
     print("starting writing POMDPX file")
     runName <- "ShinyGrab"
     outputFileName <- paste("pomdpx_files/sarsop_input_", runName,".pomdpx", sep="")
+    #######################################################
+    #add progress notifications
+    id <- showNotification("Writing POMDPX file...", duration = NULL, closeButton = FALSE)
+    on.exit(removeNotification(id), add = TRUE)
+    on.exit(showNotification(paste("POMDPX file written to", outputFileName), duration = 10, closeButton = TRUE), add=TRUE)
+    #######################################################
+    
+
     sarsop_parse(input$SpeciesMat, input$threatMat1a, input$threatMat2a, input$recoverProb, benefitRatio(), input$actionCost, outputFileName)
     print("finished writing to \"./pomdpx_files/filename\"")
   })
@@ -400,6 +450,16 @@ server <- function(input, output, session) {
     #benefitRatio=c(0,input$costExt,input$costExt)
     outfileName <- paste("./pomdp_solved/ShinySolution_", paste(benefitRatio(), collapse="_"),".policy", sep="")
     
+    
+    
+    ##############################################################
+    #add progress notifications
+    id <- showNotification("Solving POMDP...", duration = NULL, closeButton = FALSE)
+    on.exit(removeNotification(id), add = TRUE)
+    on.exit(showNotification(paste("POMDPX file written to", outfileName), duration = 10, closeButton = TRUE), add=TRUE)
+    
+    #############################################################
+
     #write an external command for sarsop to run and call it using system(cmd)
     precision <- input$SARSOPtol#1e-1  #set precision for sarsop
     #cmd <- paste("./sarsop/src/pomdpsol.exe \"", datfileName, "\" --precision ", precision, " --timeout ", input$SARSOPtimeout," --output ", outfileName, sep="") #works for cygwin; but wsl uses linux call to windows cmd prompt, see next line
@@ -556,6 +616,7 @@ server <- function(input, output, session) {
   
   
   output$SimPlot4 <- renderPlot({
+
     #plot Species marginal belief
     df.Belief.plot.species <- df_belief()[[3]]
     df.Belief.plot.species$series <- factor(df.Belief.plot.species$series)
@@ -576,11 +637,10 @@ server <- function(input, output, session) {
   
   observeEvent(input$alphaMinSolve, {
     maxDepthPolgraph <- 2 #depth of policy tree (recommend not greater than 4 for readability)  
-    # benefitRatio= c(0,input$costExt,input$costExt)  #c(-20,0,0)
+
     policy.filename <- paste("./pomdp_solved/ShinySolution_", paste(benefitRatio(), collapse="_"),".policy", sep="")
     
-    #policy.filename <- "./pomdp_solved/test.policy"
-   # policy <- read.policy(policy.filename)
+
     beliefs.filename <- "beliefs.txt"
     precision_a <- input$precision_alphamin#0.05  #user-defined
     N <- input$numvect_alphamin #10 #user-define number of alphavectors
@@ -591,6 +651,11 @@ server <- function(input, output, session) {
     print(c("policy.filename=", policy.filename))
     print(c("beliefs.filename=", beliefs.filename))
     print(c("N=", N))
+  
+    #add progress notifications
+    id <- showNotification("Compressing POMDP...", duration = NULL, closeButton = FALSE)
+    
+    #compress the policy
     reducedPolicy <- alpha_min_fast(policy.filename, beliefs.filename, precision_a, N)  #turn off to save comp time
     
      
@@ -630,7 +695,13 @@ server <- function(input, output, session) {
      print(paste("Policy graph saved to", imgNameSVG, sep=""))
      
      plotYN(1)  #set the reactive plot value to 1 after this code has been run
-     #TO DO: PLOT TO SHINY. ALSO UNCOMMENT ALPHA-MIN LINES ABOVE 
+   
+     ##############################################################
+     #add progress notifications
+     on.exit(removeNotification(id), add = TRUE)
+     on.exit(showNotification(paste("Policy graph written to", imgNameSVG), duration = 10, closeButton = TRUE), add=TRUE)
+     
+     #############################################################
   })
   
   plotYN <- reactiveVal(0)  #initialise a reactive value to zero= don't plot; change after the alphamin button above has been pressed
@@ -641,6 +712,9 @@ server <- function(input, output, session) {
       plotdf.policyGr <- grViz(policyGraphFileName.cond, engine = "dot")
       plotdf.policyGr  #plot to Shiny output
      }
+     
+     
+
   })
   
 
