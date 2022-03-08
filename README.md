@@ -3,14 +3,14 @@ R code for the threat-species adaptive management Shiny App. The app is designed
 
 This document serves as a user manual for the Shiny implementation of the threat-species MOMDP described in “A general optimal adaptive management approach for demonstrating effectiveness in threatened species management” (Nicol et al, 2021). The app is an interactive user interface for eliciting the necessary parameters, solving the MOMDP and exploring the solution via simulation.
 
-Note that the app can be accessed online using any OS via: https://jonathan-ferrer.shinyapps.io/SpeciesThreatAM/. The code behind the online app are included in this repo and are optimised for Windows.
+Note that the app can be accessed online using any OS via:  https://conservation-decisions-lw.shinyapps.io/SpeciesThreatAM/. The code behind the online app are included in this repo and are optimised for Windows.
 The installation instructions included in this document are also designed for Windows users.
 
 # Licence
 The code is licensed using the MIT open source licence. See licence information available on github. Basically this is free to use and modify with attribution. No warranty or liability is given for the code.
 
 # Windows Installation:
-NOTE THAT INSTALLATION IS NOT RECOMMENDED UNLESS YOU WANT TO MODIFY THE CODE. TO SIMPLY USE THE APP, visit https://jonathan-ferrer.shinyapps.io/SpeciesThreatAM/.
+NOTE THAT INSTALLATION IS NOT RECOMMENDED UNLESS YOU WANT TO MODIFY THE CODE. TO SIMPLY USE THE APP, visit  https://conservation-decisions-lw.shinyapps.io/SpeciesThreatAM/.
 
 The following documentation only works for Windows users. For users with other OS, we recommend using the online app or contacing the authors for help with modifying the code to run on your system. Linux users will find installation easy, but there are a couple of lines 
 in the R code that will need to be modified to ensure the app runs smoothly. We have not tested the app with Mac.
